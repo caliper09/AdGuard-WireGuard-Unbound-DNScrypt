@@ -104,8 +104,33 @@ https://user-images.githubusercontent.com/18756975/150319049-3d8acdc9-624f-4b60-
 #
 # Requirements
  
-This tutorial is installed on a Raspberry Pi with Debian OS. Other Linux <a href="https://distrowatch.com/dwres.php?resource=popularity">operating system</a><i>(𝟹𝟸/𝟼𝟺bit)</i>, <a href="https://en.wikipedia.org/wiki/Category:Single-board_computers">hardware</a> or <a href="https://github.com/dalisoft/awesome-hosting#vps">VPS service</a> can be used.</br>_(Raspberry Pi OS is most simple and recommended for Pi. For more experience users, <a href="https://dietpi.com/">DietPi</a> OS is also recommended)_
+This tutorial can be installed either directly on a system or using Docker.
 
+## Direct Installation Requirements
+- Any Linux distribution (32/64bit)
+- Raspberry Pi or other single-board computers
+- VPS service
+
+## Docker Installation
+To run using Docker:
+```bash
+# Build the Docker image
+docker build -t adguard-vpn .
+
+# Run the container
+docker run -d \
+  --name adguard-vpn \
+  --restart unless-stopped \
+  -p 53:53/tcp \
+  -p 53:53/udp \
+  -p 3000:3000/tcp \
+  -p 51820:51820/udp \
+  --cap-add NET_ADMIN \
+  --cap-add SYS_MODULE \
+  -v $(pwd)/config:/etc/wireguard \
+  -v $(pwd)/data:/opt/AdGuardHome/work \
+  adguard-vpn
+```
    - A Raspberry Pi 3 or 4 version
    - A router that supports port forwarding(most can)
    - MicroSD USB card reader
@@ -116,7 +141,7 @@ This tutorial is installed on a Raspberry Pi with Debian OS. Other Linux <a href
 #
 <h1 align="center"><b><i>Install Raspberry Pi OS</b></i> </h1>
 
-Raspberry Pi OS comes in desktop and lite versions(use lite for <a href="https://www.google.com/search?q=What+is+a+headless+operating+system%3F&client=firefox-b-d&sxsrf=APq-WBvlqMZasn_klYxS5HZmhKQlduKYuQ%3A1650123816301&ei=KORaYtz7EYOdwbkP74G16AE&ved=0ahUKEwjcr5-f9pj3AhWDTjABHe9ADR0Q4dUDCA0&uact=5&oq=What+is+a+headless+operating+system%3F&gs_lcp=Cgdnd3Mtd2l6EAMyCAghEBYQHRAeOgcIABBHELADSgQIQRgASgQIRhgAUMEBWMEBYNAEaAFwAXgAgAFqiAFqkgEDMC4xmAEAoAECoAEByAEIwAEB&sclient=gws-wiz">headless</a> mode). It can be accessed with a monitor/keyboard/mouse or connect via <a href="https://www.google.com/search?q=What+is+SSH+in+Linux%3F&client=firefox-b-d&sxsrf=APq-WBsiHvek7g0OrBHWDbEy-x7m-B6O3Q%3A1650481751310&ei=V1pgYoHNEs-uwbkPtI25mAI&ved=0ahUKEwjB1PrTq6P3AhVPVzABHbRGDiMQ4dUDCA0&uact=5&oq=What+is+SSH+in+Linux%3F&gs_lcp=Cgdnd3Mtd2l6EAMyBggAEBYQHjIGCAAQFhAeMgYIABAWEB4yBggAEBYQHjIGCAAQFhAeMgYIABAWEB4yBggAEBYQHjIGCAAQFhAeMgYIABAWEB4yBggAEBYQHjoHCCMQsAMQJzoHCAAQRxCwAzoHCAAQsAMQQzoKCAAQ5AIQsAMYAToPCC4Q1AIQyAMQsAMQQxgCSgQIQRgASgQIRhgBUM8IWM8IYJAMaAFwAXgAgAFxiAFxkgEDMC4xmAEAoAECoAEByAERwAEB2gEGCAEQARgJ2gEGCAIQARgI&sclient=gws-wiz">ssh</a> from a terminal.<br>Raspberry Pi OS <b>cannot</b> be setup through the <a href="https://www.raspberrypi.com/news/raspberry-pi-bullseye-update-april-2022/#Headless%20setup">wizard</a> anymore, the <a href="https://www.raspberrypi.com/news/raspberry-pi-imager-imaging-utility/">Imager</a> utility is needed to preconfigure an image user account.
+Raspberry Pi OS comes in desktop and lite versions(use lite for <a href="https://www.google.com/search?q=What+is+a+headless+operating+system%3F&client=firefox-b-d&sxsrf=ALiCzsaDFykPI5rNea5FvSd5YDwm5cJNUg%3A1650123816301&ei=KORaYtz7EYOdwbkP48mPkAY&ved=0ahUKEwjcr5-f9pj3AhWDTjABHe9ADR0Q4dUDCA0&uact=5&oq=What+is+a+headless+operating+system%3F&gs_lcp=Cgdnd3Mtd2l6EAMyCAghEBYQHRAeOgcIABBHELADSgQIQRgASgQIRhgAUMEBWMEBYNAEaAFwAXgAgAFqiAFqkgEDMC4xmAEAoAECoAEByAEIwAEB&sclient=gws-wiz">headless</a> mode). It can be accessed with a monitor/keyboard/mouse or connect via <a href="https://www.google.com/search?q=What+is+SSH+in+Linux%3F&client=firefox-b-d&sxsrf=APq-WBsiHvek7g0OrBHWDbEy-x7m-B6O3Q%3A1650481751310&ei=V1pgYoHNEs-uwbkPtI25mAI&ved=0ahUKEwjB1PrTq6P3AhVPVzABHbRGDiMQ4dUDCA0&uact=5&oq=What+is+SSH+in+Linux%3F&gs_lcp=Cgdnd3Mtd2l6EAMyBggAEBYQHjIGCAAQFhAeMgYIABAWEB4yBggAEBYQHjIGCAAQFhAeMgYIABAWEB4yBggAEBYQHjIGCAAQFhAeMgYIABAWEB4yBggAEBYQHjoHCCMQsAMQJzoHCAAQRxCwAzoHCAAQsAMQQzoKCAAQ5AIQsAMYAToPCC4Q1AIQyAMQsAMQQxgCSgQIQRgASgQIRhgBUM8IWM8DYNgGaAFwAXgAgAGcAYgBnAGSAQMwLjGYAQCgAQKgAQHIAQnAAQE&sclient=gws-wiz">ssh</a> from a terminal.<br>Raspberry Pi OS <b>cannot</b> be setup through the <a href="https://www.raspberrypi.com/news/raspberry-pi-bullseye-update-april-2022/#Headless%20setup">wizard</a> anymore, the <a href="https://www.raspberrypi.com/news/raspberry-pi-imager-imaging-utility/">Imager</a> utility is needed to preconfigure an image user account.
 
  * Install Raspberry Pi Imager: https://www.raspberrypi.com/software/
 
@@ -131,7 +156,7 @@ Raspberry Pi OS comes in desktop and lite versions(use lite for <a href="https:/
 
  * Wait for a minute for Pi's first boot up
 
- * Open browser and login router's admin panel(default <a href="https://www.google.com/search?q=what+is+gateway+ip+address&client=firefox-b-d&biw=1440&bih=660&sxsrf=ALiCzsaDFykPI5rNea5FvSd5YDwm5cJNUg%3A1667340103798&ei=R5dhY-quMJaGwbkPt5is6Ao&oq=what+is+my+gateway+address&gs_lcp=Cgxnd3Mtd2l6LXNlcnAQARgAMgoIABBHENYEELADMgoIABBHENYEELADMgoIABBHENYEELADMgoIABBHENYEELADMgoIABBHENYEELADMgoIABBHENYEELADMgoIABBHENYEELADMgoIABBHENYEELADMgcIABCwAxBDMgcIABCwAxBDSgQIQRgASgQIRhgAUABYAGCaFWgBcAF4AIABAIgBAJIBAJgBAMgBCsABAQ&sclient=gws-wiz-serp">IP gateway address</a>)
+ * Open browser and login router's admin panel(default <a href="https://www.google.com/search?q=what+is+gateway+ip+address&client=firefox-b-d&biw=1440&bih=660&sxsrf=ALiCzsaDFykPI5rNea5FvSd5YDwm5cJNUg%3A1667340103798&ei=R5dhY-quMJaGwbkPt5is6Ao&oq=what+is+my+gateway+address&gs_lcp=Cgxnd3Mtd2l6LXNlcnAQARgAMgYIABAWEB4yBQgAEIYDMgUIABCGAzIFCAAQhgM6CggAEEcQ1gQQsAM6BQgAEIAEOgUIIRCgAToICCEQFhAeEB1KBAhBGABKBAhGGABQjThY_D9g7UhoAnABeACAAdoBiAHyBJIBBTAuMy4xmAEAoAEByAEIwAEB&sclient=gws-wiz-serp">IP gateway address</a>)
  
  * Find list of all devices connected to network and copy the IP address of the Raspberry Pi. It will most likely have the hostname `raspberrypi`
 
@@ -203,7 +228,7 @@ curl -s -S -L https://raw.githubusercontent.com/AdguardTeam/AdGuardHome/master/s
 
     - <i>IPv6 (needed for `DoH`/`DoT`/`oDoH` to detect if using it)</i>
 
-     Go to "Internet Protocol Version 6(TCP/IPv6)" Enter <a href="https://www.google.com/search?q=what+is+%3A%3A1&client=firefox-b-d&sxsrf=ALiCzsYu-GId0NA6gwu0SgOIpe6KTsOmAw%3A1667330913170&ei=YXNhY-yLCtWdwbkP-4u4iAY&ved=0ahUKEwiswLXW2437AhXVTjABHfsFDmEQ4dUDCA4&uact=5&oq=what+is+%3A%3A1&gs_lcp=Cgxnd3Mtd2l6LXNlcnAQAzIECCMQJzIECCMQJzIECCMQJzIFCAAQkQIyBQgAEJECMgUIABCRAjIFCAAQkQIyCAgAELEDEIMBMggIABCxAxCDATIFCAAQgARKBAhBGABKBAhGGABQsgJY2BpgnhtoAXAAeACAAfACiAGTBZIBBTItMS4xmAEAoAEBwAEB&sclient=gws-wiz-serp">`::1`</a>
+     Go to "Internet Protocol Version 6(TCP/IPv6)" Enter <a href="https://www.google.com/search?q=what+is+%3A%3A1&client=firefox-b-d&sxsrf=ALiCzsYu-GId0NA6gwu0SgOIpe6KTsOmAw%3A1667330913170&ei=YXNhY-yLCtWdwbkP-4u4iAY&ved=0ahUKEwiswLXW2437AhXVTjABHfsFDmEQ4dUDCA4&uact=5&oq=what+is+%3A%3A1&gs_lcp=Cgxnd3Mtd2l6EAMyBQghEKABMgUIIRCgATIFCCEQoAEyBQghEKABMggIABCxAxCDATIFCAAQgARKBAhBGABKBAhGGABQsgJY2BpgnhtoAXAAeACAAfACiAGTBZIBBTItMS4xmAEAoAEBwAEB&sclient=gws-wiz-serp">`::1`</a>
 
 <p align="center">
  <img src="https://i.imgur.com/8gsDk3z.jpg"></p>
@@ -268,7 +293,7 @@ curl -s -L https://raw.githubusercontent.com/trinib/AdGuard-WireGuard-Unbound-Cl
 
 ## Install SSL certificate
 
-If using AdGuard Home on a `VPS(Virtual private server)`, get a <a href="https://www.google.com/search?q=What+is+purpose+of+SSL+certificate%3F&client=firefox-b-d&sxsrf=APq-WBsi9wVR8QaPcOuMXEpKVMqtOxrI-A%3A1650799271342&ei=pzJlYvDEFJbUkPIP48mPkAY&ved=0ahUKEwiwtKfByqz3AhUWKkQIHePkA2IQ4dUDCA0&uact=5&oq=What+is+purpose+of+SSL+certificate%3F&gs_lcp=Cgdnd3Mtd2l6EAMyBggAEBYQHjIGCAAQFhAeOgcIABBHELADOgcIABCwAxBDOgoIABDkAhCwAxgBOhUILhDHARCvARDUAhDIAxCwAxBDGAI6EgguEMcBENEDEMgDELADEEMYAkoECEEYAEoECEYYAVC7AVi7AWDnBGgBcAF4AIABbYgBbZIBAzAuMZgBAKABAqABAcgBE8ABAdoBBggBEAEYCdoBBggCEAEYCA&sclient=gws-wiz">SSL certificate</a> to make connection secure and data safe<a href="https://github.com/trinib/AdGuard-WireGuard-Unbound-Cloudflare/wiki/Create-auto-renewal-SSL-certificate"><b>🔗click here🔗</b></a>. In this case your DNS resolver(AdGuard Home) resides outside your network, and your DNS requests have better protection from the third parties.
+If using AdGuard Home on a `VPS(Virtual private server)`, get a <a href="https://www.google.com/search?q=What+is+purpose+of+SSL+certificate%3F&client=firefox-b-d&sxsrf=APq-WBsi9wVR8QaPcOuMXEpKVMqtOxrI-A%3A1650799271342&ei=pzJlYvDEFJbUkPIP48mPkAY&ved=0ahUKEwiwtKfByqz3AhWGl2oFHf34BZwQ4dUDCA0&uact=5&oq=What+is+purpose+of+SSL+certificate%3F&gs_lcp=Cgdnd3Mtd2l6EAMyBggAEBYQHjIGCAAQFhAeOgcIABBHELADOgcIABCwAxBDOgoIABDkAhCwAxgBOhUILhDHARCvARDUAhDIAxCwAxBDGAI6EgguEMcBENEDEMgDELADEEMYAkoECEEYAEoECEYYAVC7AVi7AWDnBGgBcAF4AIABfYgBfZIBAzAuMZgBAKABAqABAcgBCcABAQ&sclient=gws-wiz">SSL certificate</a> to make connection secure and data safe<a href="https://github.com/trinib/AdGuard-WireGuard-Unbound-Cloudflare/wiki/Create-auto-renewal-SSL-certificate"><b>🔗click here🔗</b></a>. In this case your DNS resolver(AdGuard Home) resides outside your network, and your DNS requests have better protection from the third parties.
 
 ### _Install Pi-hole as an alternative<a href="https://github.com/pi-hole/pi-hole/#one-step-automated-install"><b>🔗click here🔗</b></a>_
 
@@ -287,7 +312,7 @@ For the version from package manager, run the following command in terminal:
 sudo apt install unbound -y
 ```
 > [!IMPORTANT]
-> If using **DietPi** or other OS that do not auto insert `nameserver 127.0.0.1` in resolv.conf(to check - `sudo nano /etc/resolv.conf`) and want to query cache on <a href="https://www.google.com/search?q=localhost+in+linux+meaning&client=firefox-b-d&biw=1440&bih=660&sxsrf=ALiCzsZQjrruvwGr5xLnu1DMlt8k1FU1jQ%3A1667331220024&ei=lHRhY_iPAZydwbkP6sWwwAw&oq=localhost+in+linux+mea&gs_lcp=Cgxnd3Mtd2l6LXNlcnAQARgAMgYIABAWEB4yBQgAEIYDMgUIABCGAzIFCAAQhgM6CggAEEcQ1gQQsAM6BQgAEIAEOgUIIRCgAToICCEQFhAeEB1KBAhBGABKBAhGGABQjThY_D9g7UhoAnABeACAAdoBiAHyBJIBBTAuMy4xmAEAoAEByAEIwAEB&sclient=gws-wiz-serp">local</a> hosts, just install resolvconf package and restart unbound-resolvconf.service which should be automatically set:
+> If using **DietPi** or other OS that do not auto insert `nameserver 127.0.0.1` in resolv.conf(to check - `sudo nano /etc/resolv.conf`) and want to query cache on <a href="https://www.google.com/search?q=localhost+in+linux+meaning&client=firefox-b-d&biw=1440&bih=660&sxsrf=ALiCzsZQjrruvwGr5xLnu1DMlt8k1FU1jQ%3A1667331220024&ei=lHRhY_iPAZydwbkP6sWwwAw&oq=localhost+in+linux+mea&gs_lcp=Cgxnd3Mtd2l6LXNlcnAQARgAMgYIABAWEB4yBQgAEIYDMgUIABCGAzIFCAAQhgM6CggAEEcQ1gQQsAM6BQgAEIAEOgUIIRCgAToICCEQFhAeEB1KBAhBGABKBAhGGABQjThY_D9g7UhoAnABeACAAdoBiAHyBJIBBDEuMTKYAQCgAQHIAQjAAQE&sclient=gws-wiz-serp">local</a> hosts, just install resolvconf package and restart unbound-resolvconf.service which should be automatically set:
 > 
 >     sudo apt-get install resolvconf -y && sudo systemctl restart unbound-resolvconf.service
 > Run `ping -c 3 google.com` to confirm localhost is reachable to internet. If not, set/add your default network's dns/gateway or whatever was the default<a href="https://github.com/trinib/AdGuard-WireGuard-Unbound-DNScrypt/wiki/Set-permanent-DNS-nameservers"><b>🔗click here🔗</b></a>
@@ -304,7 +329,7 @@ dig google.com @127.0.0.1
 wget -O root.hints https://www.internic.net/domain/named.root && sudo mv root.hints /var/lib/unbound/
 ```
 
-* This needs to update every 6 months using <a href="https://www.google.com/search?q=How+does+cron+job+work%3F&client=firefox-b-d&sxsrf=ALiCzsbaAmCCZqLJt2cOtQ3UXn7wxrWD3Q%3A1651353477111&ei=hadtYt-vBoavqtsP_fGX4Ak&ved=0ahUKEwifhpuL27z3AhWGl2oFHf34BZwQ4dUDCA0&uact=5&oq=How+does+cron+job+work%3F&gs_lcp=Cgdnd3Mtd2l6EAMyBggAEBYQHjoHCAAQRxCwAzoHCAAQsAMQQ0oECEEYAEoECEYYAFDTAVjTAWDRBmgBcAF4AIABfYgBfZIBAzAuMZgBAKABAqABAcgBCcABAQ&sclient=gws-wiz">cron job</a>. Enter in command line `crontab -e`, it will ask select an editor(choose 1), paste these lines at the bottom of crontab and save (control+x then y then enter):
+* This needs to update every 6 months using <a href="https://www.google.com/search?q=How+does+cron+job+work%3F&client=firefox-b-d&sxsrf=ALiCzsbaAmCCZqLJt2cOtQ3UXn7wxrWD3Q%3A1651353477111&ei=hadtYt-vBoavqtsP_fGX4Ak&ved=0ahUKEwjxhpuL27z3AhWGl2oFHf34BZwQ4dUDCA0&uact=5&oq=How+does+cron+job+work%3F&gs_lcp=Cgdnd3Mtd2l6EAMyBggAEBYQHjIGCAAQFhAeOgcIABBHELADSgQIQRgASgQIRhgAUMUBWMUBYMkHaAFwAXgAgAGfAYgBnwGSAQMwLjGYAQCgAQKgAQHIAQjAAQE&sclient=gws-wiz">cron job</a>. Enter in command line `crontab -e`, it will ask select an editor(choose 1), paste these lines at the bottom of crontab and save (control+x then y then enter):
 
 >   1 0 1 */6 * wget -O root.hints https://www.internic.net/domain/named.root<br>
 >   2 0 1 */6 * sudo mv root.hints /var/lib/unbound/
@@ -365,7 +390,7 @@ Run `dig google.com @127.0.0.1` and check for `NOERROR` status to confirm its co
 
 ## Configure Stubby and Unbound
 
-Use Unbound for caching and Stubby as a <a href="https://www.google.com/search?q=How+does+TLS+proxy+work%3F&client=firefox-b-d&sxsrf=ALiCzsaNlPunZpYtzDVoVA6PVTkY6rOqyQ%3A1651275938995&ei=onhsYsqtPImRggez_K2oBA&ved=0ahUKEwjKhpSeurr3AhWJiOAKHTN-C0UQ4dUDCA4&uact=5&oq=How+does+TLS+proxy+work%3F&gs_lcp=Cgdnd3Mtd2l6EAMyBQghEKABMgUIIRCgATIFCCEQoAEyBQghEKABMggIIRAWEB0QHjIICCEQFhAdEB4yCAghEBYQHRAeMggIIRAWEB0QHjIICCEQFhAdEB4yCAghEBYQHRAeOgcIABBHELADSgQIQRgASgQIRhgAUMUBWMUBYMkHaAFwAXgAgAGfAYgBnwGSAQMwLjGYAQCgAQKgAQHIAQjAAQE&sclient=gws-wiz">TLS forwarder</a>
+Use Unbound for caching and Stubby as a <a href="https://www.google.com/search?q=How+does+TLS+proxy+work%3F&client=firefox-b-d&sxsrf=ALiCzsaNlPunZpYtzDVoVA6PVTkY6rOqyQ%3A1651275938995&ei=onhsYsqtPImRggez_K2oBA&ved=0ahUKEwjKhpSeurr3AhWJiOAKHTN-C0UQ4dUDCA4&uact=5&oq=How+does+TLS+proxy+work%3F&gs_lcp=Cgdnd3Mtd2l6EAMyBQghEKABMgUIIRCgATIFCCEQFhAdEB4yCAghEBYQHRAeMggIIRAWEB0QHjIICCEQFhAdEB4yCAghEBYQHRAeOgcIABBHELADSgQIQRgASgQIRhgAUMUBWMUBYMkHaAFwAXgAgAGfAYgBnwGSAQMwLjGYAQCgAQKgAQHIAQjAAQE&sclient=gws-wiz">TLS forwarder</a>
 > [!WARNING]  
 > Stubby and DNScrypt **should not** be used together when both are set to run as a forwarder in Unbound, else redundant caching will occur. Use with Cloudflare tunnel only.
 
@@ -450,7 +475,7 @@ AAA records(IPv6)
 </p>
  </details>
 
-### Use <a href="https://www.google.com/search?q=what+does+tail+command+do+linux&client=firefox-b-d&sxsrf=ALiCzsawidkeBiELxfyKyqucXz1ghKk8tQ%3A1667339937159&ei=oZZhY7GwCZ6WwbkP0vCowAg&ved=0ahUKEwjxhLKl_Y37AhUeSzABHVI4CogQ4dUDCA4&uact=5&oq=what+does+tail+command+do+linux&gs_lcp=Cgxnd3Mtd2l6LXNlcnAQAzIICAAQCBAHEB4yBQgAEIYDMgUIABCGAzIFCAAQhgM6BAgAEEc6BwgjELACECc6BwgAEIAEEA06CggAEAgQBxAeEA86CAgAEAUQBxAeOgYIABAIEB5KBAhBGABKBAhGGABQ5Q5YoDRg6TRoAHAEeACAAZ0BiAHWC5IBBDEuMTKYAQCgAQHIAQjAAQE&sclient=gws-wiz-serp">tail</a> command to monitor logs in realtime:
+### Use <a href="https://www.google.com/search?q=what+does+tail+command+do+linux&client=firefox-b-d&sxsrf=ALiCzsawidkeBiELxfyKyqucXz1ghKk8tQ%3A1667339937159&ei=oZZhY7GwCZ6WwbkP0vCowAg&ved=0ahUKEwjxhLKl_Y37AhUeSzABHVI4CogQ4dUDCA4&uact=5&oq=what+does+tail+command+do+linux&gs_lcp=Cgxnd3Mtd2l6LXNlcnAQAzIICAAQCBAHEB4yBQgAEIYDMgUIABCGAzIFCAAQhgM6BwgjELACECc6BwgAEIAEEA06CggAEAgQBxAeEA86CAgAEAUQBxAeOgYIABAIEB5KBAhBGABKBAhGGABQ5Q5YoDRg6TRoAHAEeACAAZ0BiAHWC5IBBDEuMTKYAQCgAQHIAQjAAQE&sclient=gws-wiz-serp">tail</a> command to monitor logs in realtime:
 ```bash
 ## Unbound
 ## If using unbound from package manager, manually create log file - sudo touch /var/log/unbound.log
@@ -595,7 +620,7 @@ You should see all connections `closed` and status showing all `DNS port 53` and
 ***
 
 <p align="center">
-<b><i>✨ 𝘈𝘕𝘠 𝘐𝘚𝘚𝘜𝘌𝘚, 𝘍𝘐𝘟𝘌𝘚 𝘖𝘙 𝘛𝘐𝘗𝘚 𝘛𝘖 𝘔𝘈𝘒𝘌 𝘛𝘏𝘌𝘚𝘌 𝘗𝘙𝘖𝘑𝘌𝘊𝘛𝘚 𝘉𝘌𝘛𝘛𝘌𝘙 𝘗𝘓𝘌𝘈𝘚𝘌 𝘊𝘖𝘕𝘛𝘙𝘐𝘉𝘜𝘛𝘌 ✨</i></b>
+<b><i>✨ 𝘈𝘕𝘠 𝘐𝘚𝘚𝘜𝘌𝘚, 𝘍𝘐𝘟𝘌𝘚 𝘖𝘙 𝘛𝘐𝘗𝘚 𝘛𝘖 𝘔𝘈𝘒𝘌 𝘛𝘏𝘌𝘚𝘌 𝘗𝘙𝘖𝘑𝘌𝘊𝘛𝘚 𝘉𝘌𝘛𝘛𝘌𝘙 𝘗𝘓𝘌𝘈𝘚𝘌 𝘊𝘖𝘕𝘛𝘙𝘐𝘣𝘜𝘛𝘌 ✨</i></b>
 
 <p align="center">
 <img src="https://user-images.githubusercontent.com/73097560/115834477-dbab4500-a447-11eb-908a-139a6edaec5c.gif"
